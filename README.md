@@ -26,7 +26,9 @@ Open http://localhost:5173 and sign in with the existing Firebase account. There
 - **Profit** = PO amount − payment required
 - **Net profit** = total profit − total expenses
 - **Due date** defaults to invoice date + 45 days and can be edited.
-- **Status**: *Pending* before the due date, *Due today*, *Overdue* after it, or *Completed* once marked as paid.
+- **Status**: *Pending* before the due date, *Due today*, *Overdue* after it, or *Completed* once marked as paid. Tap any status badge (orders list, table or dashboard) to switch between *Awaiting payment* and *Completed* without opening the order.
+- **Suggestions**: PO number, invoice number and expense title suggest values you've entered before. A new order's invoice number is pre-filled with the next number in your latest series (INV-0142 → INV-0143). Picking a past expense title also fills its category and payment mode if no category is chosen yet.
+- **Theme**: Light (default), Dark or System, saved per device.
 - **Reports** count orders by invoice date and expenses by expense date. Ranges up to 31 days are charted per day; longer ranges per month.
 
 ## Project structure

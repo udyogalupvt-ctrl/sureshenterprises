@@ -2,7 +2,7 @@ import { ArrowRight, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../../lib/cn';
 import { formatDate, formatINR } from '../../lib/format';
-import StatusBadge from '../ui/StatusBadge';
+import StatusMenu from './StatusMenu';
 
 function Metric({ label, value, accent = false }) {
   return (
@@ -15,19 +15,26 @@ function Metric({ label, value, accent = false }) {
   );
 }
 
-/** Stacked card for small screens. Expects `order.status` to be precomputed. */
+/**
+ * Stacked card for small screens. Expects `order.status` to be precomputed.
+ * The PO link stretches over the whole card so the status menu can sit on top of it.
+ */
 export default function PurchaseOrderCard({ order }) {
   return (
-    <Link
-      to={`/purchase-orders/${order.id}`}
-      className="block rounded-2xl border border-line bg-surface p-4 shadow-soft transition hover:border-line-strong active:scale-[0.99]"
-    >
+    <article className="relative rounded-2xl border border-line bg-surface p-4 shadow-soft transition-colors hover:border-line-strong">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate font-semibold text-fg">PO {order.poNumber}</p>
+          <p className="truncate font-semibold text-fg">
+            <Link
+              to={`/purchase-orders/${order.id}`}
+              className="outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:ring-4 focus-visible:after:ring-accent/25"
+            >
+              PO {order.poNumber}
+            </Link>
+          </p>
           <p className="mt-0.5 truncate text-[13px] text-muted">Invoice {order.invoiceNumber}</p>
         </div>
-        <StatusBadge status={order.status} />
+        <StatusMenu order={order} />
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px] text-muted">
@@ -44,6 +51,6 @@ export default function PurchaseOrderCard({ order }) {
         <Metric label="GST" value={order.gst} />
         <Metric label="Profit" value={order.profit} accent />
       </dl>
-    </Link>
+    </article>
   );
 }

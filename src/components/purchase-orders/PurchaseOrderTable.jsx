@@ -2,7 +2,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/cn';
 import { formatDate, formatINR } from '../../lib/format';
 import { Card } from '../ui/Card';
-import StatusBadge from '../ui/StatusBadge';
+import StatusMenu from './StatusMenu';
 
 /** Wide-screen table. Expects `order.status` to be precomputed. */
 export default function PurchaseOrderTable({ orders }) {
@@ -48,7 +48,7 @@ export default function PurchaseOrderTable({ orders }) {
               <td className="px-3 text-right text-muted tabular-nums">{formatINR(order.gst)}</td>
               <td className="px-3 text-right font-medium text-accent-ink tabular-nums">{formatINR(order.profit)}</td>
               <td className="pr-5 pl-3">
-                <StatusBadge status={order.status} />
+                <StatusMenu order={order} />
               </td>
             </tr>
           ))}

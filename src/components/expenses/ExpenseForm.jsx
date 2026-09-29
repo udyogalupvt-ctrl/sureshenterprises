@@ -1,14 +1,16 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { uploadImage } from '../../lib/cloudinary';
 import { cn } from '../../lib/cn';
 import { PAYMENT_MODES } from '../../lib/constants';
 import { toISODate } from '../../lib/format';
+import { previousValues } from '../../lib/suggestions';
 import { saveCategory } from '../../services/categories';
 import { createExpense, updateExpense } from '../../services/expenses';
+import Autocomplete from '../ui/Autocomplete';
 import Button from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Field, FormActions, Input, Select, Textarea } from '../ui/Form';
@@ -25,7 +27,8 @@ const ERROR_MESSAGES = {
 /** Keeps a saved value selectable even if it's no longer in the standard list. */
 const withCurrent = (options, current) => (current && !options.includes(current) ? [...options, current] : options);
 
-export default function ExpenseForm({ expense, categories, onSaved, onDelete }) {
+/** `previousExpenses` (newest first) feed the title suggestions. */
+export default function ExpenseForm({ expense, categories, previousExpenses, onSaved, onDelete }) {
   const isNew = !expense;
   const [proof, setProof] = useState(expense?.proofUrl ? { file: null, url: expense.proofUrl } : null);
   const [uploading, setUploading] = useState(false);
@@ -34,7 +37,9 @@ export default function ExpenseForm({ expense, categories, onSaved, onDelete }) 
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting },
+    getValues,
+    setValue,
+    formState: { errors, isSubmitting, isSubmitted },
   } = useForm({
     defaultValues: {
       amount: expense ? String(expense.amount) : '',
@@ -47,7 +52,20 @@ export default function ExpenseForm({ expense, categories, onSaved, onDelete }) 
     },
   });
 
-  const category = useWatch({ control, name: 'category' });
+  const [title, category] = useWatch({ control, name: ['title', 'category'] });
+
+  const titleOptions = useMemo(
+    () => previousValues(previousExpenses, 'title', (item) => item.category),
+    [previousExpenses],
+  );
+
+  /** Picking a past title also copies its category and payment mode, unless a category is already chosen. */
+  const pickTitle = ({ value, record }) => {
+    setValue('title', value, { shouldDirty: true });
+    if (getValues('category') || !categories.includes(record.category)) return;
+    setValue('category', record.category, { shouldDirty: true, shouldValidate: isSubmitted });
+    if (PAYMENT_MODES.includes(record.paymentMode)) setValue('paymentMode', record.paymentMode, { shouldDirty: true });
+  };
 
   const selectProof = (file) => {
     if (!file.type.startsWith('image/')) {
@@ -137,7 +155,14 @@ export default function ExpenseForm({ expense, categories, onSaved, onDelete }) 
         </Field>
 
         <Field label="Title" htmlFor="title" optional>
-          <Input id="title" placeholder="e.g. Diesel for delivery van" {...register('title')} />
+          <Autocomplete
+            id="title"
+            placeholder="e.g. Diesel for delivery van"
+            options={titleOptions}
+            currentValue={title}
+            onPick={pickTitle}
+            {...register('title')}
+          />
         </Field>
 
         <Field label="Category" htmlFor="category" error={errors.category?.message}>

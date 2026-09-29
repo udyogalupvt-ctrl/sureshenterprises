@@ -29,4 +29,6 @@ export const createPurchaseOrder = (values) =>
 
 export const updatePurchaseOrder = (id, values) => updateDoc(userDoc(COLLECTION, id), toRecord(values));
 
+export const setPurchaseOrderCompleted = (id, completed) => updateDoc(userDoc(COLLECTION, id), { completed });
+
 export const deletePurchaseOrder = (id) => deleteDoc(userDoc(COLLECTION, id));

@@ -1,21 +1,24 @@
 import { Check, Trash2 } from 'lucide-react';
+import { useMemo } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { calcGST, calcProfit } from '../../lib/calculations';
 import { cn } from '../../lib/cn';
 import { GST_RATE, PAYMENT_TERM_DAYS } from '../../lib/constants';
-import { addDays, formatINR, toISODate } from '../../lib/format';
+import { addDays, formatDate, formatINR, toISODate } from '../../lib/format';
+import { nextInvoiceNumber, previousValues } from '../../lib/suggestions';
 import { createPurchaseOrder, updatePurchaseOrder } from '../../services/purchaseOrders';
+import Autocomplete from '../ui/Autocomplete';
 import Button from '../ui/Button';
 import { Card } from '../ui/Card';
 import { CurrencyInput, Field, FormActions, FormSection, Input, Switch } from '../ui/Form';
 
-function defaultValues(order) {
+function defaultValues(order, suggestedInvoiceNumber) {
   if (!order) {
     const today = toISODate();
     return {
       poNumber: '',
-      invoiceNumber: '',
+      invoiceNumber: suggestedInvoiceNumber,
       invoiceDate: today,
       dueDate: addDays(today, PAYMENT_TERM_DAYS),
       poAmount: '',
@@ -45,18 +48,33 @@ function SummaryRow({ label, value }) {
   );
 }
 
-export default function PurchaseOrderForm({ order, onSaved, onDelete }) {
+/** `previousOrders` (newest first) feed the suggestions and the next invoice number. */
+export default function PurchaseOrderForm({ order, previousOrders, onSaved, onDelete }) {
   const isNew = !order;
+  const suggestedInvoiceNumber = isNew ? nextInvoiceNumber(previousOrders) : '';
   const {
     register,
     handleSubmit,
     setValue,
     control,
     formState: { errors, isSubmitting },
-  } = useForm({ defaultValues: defaultValues(order) });
+  } = useForm({ defaultValues: defaultValues(order, suggestedInvoiceNumber) });
 
-  const [poAmount, paymentRequired] = useWatch({ control, name: ['poAmount', 'paymentRequired'] });
+  const [poNumber, invoiceNumber, poAmount, paymentRequired] = useWatch({
+    control,
+    name: ['poNumber', 'invoiceNumber', 'poAmount', 'paymentRequired'],
+  });
   const profit = calcProfit(poAmount, paymentRequired);
+
+  const poNumberOptions = useMemo(
+    () => previousValues(previousOrders, 'poNumber', (po) => po.invoiceNumber),
+    [previousOrders],
+  );
+  const invoiceNumberOptions = useMemo(
+    () => previousValues(previousOrders, 'invoiceNumber', (po) => formatDate(po.invoiceDate)),
+    [previousOrders],
+  );
+  const choose = (name) => (option) => setValue(name, option.value, { shouldDirty: true, shouldValidate: true });
 
   const submit = async (values) => {
     try {
@@ -80,19 +98,28 @@ export default function PurchaseOrderForm({ order, onSaved, onDelete }) {
         <FormSection title="Order details">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="PO number" htmlFor="poNumber" error={errors.poNumber?.message}>
-              <Input
+              <Autocomplete
                 id="poNumber"
-                autoComplete="off"
                 placeholder="e.g. 4501928374"
+                options={poNumberOptions}
+                currentValue={poNumber}
+                onPick={choose('poNumber')}
                 aria-invalid={Boolean(errors.poNumber)}
                 {...register('poNumber', requiredText('Enter the PO number'))}
               />
             </Field>
-            <Field label="Invoice number" htmlFor="invoiceNumber" error={errors.invoiceNumber?.message}>
-              <Input
+            <Field
+              label="Invoice number"
+              htmlFor="invoiceNumber"
+              hint={suggestedInvoiceNumber && 'The next number after your last invoice. Change it if needed.'}
+              error={errors.invoiceNumber?.message}
+            >
+              <Autocomplete
                 id="invoiceNumber"
-                autoComplete="off"
                 placeholder="e.g. INV-0142"
+                options={invoiceNumberOptions}
+                currentValue={invoiceNumber}
+                onPick={choose('invoiceNumber')}
                 aria-invalid={Boolean(errors.invoiceNumber)}
                 {...register('invoiceNumber', requiredText('Enter the invoice number'))}
               />

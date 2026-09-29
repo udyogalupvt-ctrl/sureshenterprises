@@ -25,7 +25,7 @@ function BrandPanel() {
       />
 
       <div className="relative flex items-center gap-3">
-        <Logo className="size-10" />
+        <Logo onDark className="size-10" />
         <span className="text-[15px] font-semibold">Suresh Enterprises</span>
       </div>
 

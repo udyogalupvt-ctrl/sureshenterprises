@@ -37,10 +37,11 @@ export default function PurchaseOrderEditor() {
   };
 
   let content;
-  if (isNew) {
-    content = <PurchaseOrderForm onSaved={() => navigate(LIST_PATH)} />;
-  } else if (loading) {
+  // Wait for data even when adding, so suggestions and the next invoice number are ready.
+  if (loading) {
     content = <FormSkeleton />;
+  } else if (isNew) {
+    content = <PurchaseOrderForm previousOrders={purchaseOrders} onSaved={() => navigate(LIST_PATH)} />;
   } else if (!order) {
     content = (
       <Card>
@@ -60,6 +61,7 @@ export default function PurchaseOrderEditor() {
     content = (
       <PurchaseOrderForm
         order={order}
+        previousOrders={purchaseOrders}
         onSaved={() => navigate(LIST_PATH)}
         onDelete={() => setConfirmingDelete(true)}
       />

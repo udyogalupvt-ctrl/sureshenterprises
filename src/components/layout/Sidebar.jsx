@@ -1,14 +1,17 @@
 import { motion } from 'framer-motion';
 import { Link, NavLink } from 'react-router-dom';
 import { useUser } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { cn } from '../../lib/cn';
 import Logo from '../ui/Logo';
+import SegmentedControl from '../ui/SegmentedControl';
 import { NAV_ITEMS } from './navigation';
 import SignOutButton from './SignOutButton';
-import ThemeToggle from './ThemeToggle';
+import { THEME_OPTIONS } from './themeOptions';
 
 export default function Sidebar() {
   const user = useUser();
+  const { preference, setPreference } = useTheme();
 
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-line bg-canvas px-4 py-6 lg:flex">
@@ -51,8 +54,17 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto">
-        <ThemeToggle showLabel />
-        <div className="mt-3 flex items-center gap-3 border-t border-line pt-4 pl-2">
+        <div className="flex items-center justify-between gap-3 pl-3">
+          <span className="text-sm font-medium text-muted">Theme</span>
+          <SegmentedControl
+            label="Theme"
+            iconOnly
+            options={THEME_OPTIONS}
+            value={preference}
+            onChange={setPreference}
+          />
+        </div>
+        <div className="mt-4 flex items-center gap-3 border-t border-line pt-4 pl-2">
           <span className="grid size-8 shrink-0 place-items-center rounded-full bg-accent/15 text-xs font-semibold text-accent-ink uppercase">
             {user.email?.[0] ?? 'S'}
           </span>

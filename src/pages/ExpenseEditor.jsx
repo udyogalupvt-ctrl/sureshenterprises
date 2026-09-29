@@ -38,10 +38,13 @@ export default function ExpenseEditor() {
   };
 
   let content;
-  if (isNew) {
-    content = <ExpenseForm categories={categories} onSaved={() => navigate(LIST_PATH)} />;
-  } else if (loading) {
+  // Wait for data even when adding, so title suggestions are ready.
+  if (loading) {
     content = <FormSkeleton />;
+  } else if (isNew) {
+    content = (
+      <ExpenseForm categories={categories} previousExpenses={expenses} onSaved={() => navigate(LIST_PATH)} />
+    );
   } else if (!expense) {
     content = (
       <Card>
@@ -62,6 +65,7 @@ export default function ExpenseEditor() {
       <ExpenseForm
         expense={expense}
         categories={categories}
+        previousExpenses={expenses}
         onSaved={() => navigate(LIST_PATH)}
         onDelete={() => setConfirmingDelete(true)}
       />

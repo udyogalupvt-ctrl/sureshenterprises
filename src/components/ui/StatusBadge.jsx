@@ -24,7 +24,8 @@ const STATUSES = {
   },
 };
 
-export default function StatusBadge({ status, className }) {
+/** `children` are appended after the label (e.g. a chevron when the badge opens a menu). */
+export default function StatusBadge({ status, className, children }) {
   const { label, icon: Icon, className: tone } = STATUSES[status];
 
   return (
@@ -37,6 +38,7 @@ export default function StatusBadge({ status, className }) {
     >
       <Icon className="size-3.5" />
       {label}
+      {children}
     </span>
   );
 }
