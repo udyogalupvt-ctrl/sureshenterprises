@@ -6,11 +6,12 @@ import { useTheme } from '../../context/ThemeContext';
 import { cn } from '../../lib/cn';
 import Logo from '../ui/Logo';
 import SegmentedControl from '../ui/SegmentedControl';
+import { DueBell } from './DueReminder';
 import { NAV_ITEMS } from './navigation';
 import SignOutButton from './SignOutButton';
 import { THEME_OPTIONS } from './themeOptions';
 
-export default function Sidebar({ collapsed, onToggle }) {
+export default function Sidebar({ collapsed, onToggle, reminderCount, onOpenReminders }) {
   const user = useUser();
   const { preference, setPreference } = useTheme();
 
@@ -70,6 +71,12 @@ export default function Sidebar({ collapsed, onToggle }) {
             )}
           </NavLink>
         ))}
+        <DueBell
+          count={reminderCount}
+          onClick={onOpenReminders}
+          label={!collapsed}
+          className={cn('h-10 w-full', collapsed ? 'justify-center' : 'px-3')}
+        />
       </nav>
 
       <div className="mt-auto">

@@ -7,7 +7,7 @@ This file holds the working state between chats, so a new chat never needs the o
 - **At the start of a chat:** read this file, then do the first open item under "Next steps", unless the user asks for something else.
 - **At the end of a task:** update "State", "Next steps" and "Last updated".
 
-Last updated: 2026-10-06 (GST others as spreadsheet, Own GST section, PO data synced to the client's sheet, Excel export)
+Last updated: 2026-10-06 (payment reminder popup + bell, 5-day window)
 
 ## State
 
@@ -19,6 +19,7 @@ Last updated: 2026-10-06 (GST others as spreadsheet, Own GST section, PO data sy
   - GST others + Own GST: one page (`pages/GstLedger.jsx`), collections `gst_others` / `own_gst`, date required, GST rate + share/balance %.
   - Expenses: payment modes Bank/UPI/Cash/Card, Bank field, Interest category ("Bank Transfer" reads as Bank).
   - Reports → Export to Excel (`lib/excelExport.js`, `write-excel-file` lazy-loaded): everything in one file or each section separately, for the chosen period.
+  - Payment reminders: popup once a day per device for unpaid orders overdue / due today / due within 5 days, Mark paid with Undo; bell with count in sidebar and phone header (`hooks/useDueReminder.js`, `components/layout/DueReminder.jsx`).
   - Removed dead legacy files (`pages/AddPO|AddExpense|Records`, `src/contexts`, `src/config`, `components/Layout.jsx`).
 - **Live data (client's Firestore) already updated** to match the client's sheets: 31 SEP orders (INV-26-155…185), 7 GST-others rows, 6 expenses. Two October orders (inv 186, 139) were not in the sheet and were left as they are.
 - **How to run and check it:** `npm run build`, `npm run lint` (both clean). Screenshots were checked at 390 px and 1440 px in light and dark by signing in with the client's account in a throwaway Playwright browser (credentials are not stored anywhere; ask the user).

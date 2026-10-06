@@ -3,6 +3,9 @@ export const GST_RATE = 0.18;
 /** Days between invoice date and the default due date. */
 export const PAYMENT_TERM_DAYS = 45;
 
+/** Orders due within this many days are listed in the payment reminder popup. */
+export const DUE_ALERT_DAYS = 5;
+
 export const DEFAULT_CATEGORIES = [
   'Transport',
   'Fuel',

@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion';
 import { Suspense } from 'react';
 import { Outlet, useLocation, useMatch } from 'react-router-dom';
+import { useDueReminder } from '../../hooks/useDueReminder';
 import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed';
 import { cn } from '../../lib/cn';
 import { ListSkeleton } from '../ui/Skeleton';
 import AddButton from './AddButton';
 import BottomNav from './BottomNav';
+import { DueReminderDialog } from './DueReminder';
 import MobileHeader from './MobileHeader';
 import Sidebar from './Sidebar';
 
@@ -18,12 +20,18 @@ export default function AppLayout() {
   // Spreadsheet pages get the full width so every column fits.
   const isSheet = ['/purchase-orders', '/gst-others', '/own-gst'].includes(pathname);
   const [collapsed, toggleCollapsed] = useSidebarCollapsed();
+  const reminder = useDueReminder();
 
   return (
     <>
-      <Sidebar collapsed={collapsed} onToggle={toggleCollapsed} />
+      <Sidebar
+        collapsed={collapsed}
+        onToggle={toggleCollapsed}
+        reminderCount={reminder.alerts.count}
+        onOpenReminders={reminder.open}
+      />
       <div className={cn('transition-[padding] duration-200', collapsed ? 'lg:pl-20' : 'lg:pl-64')}>
-        <MobileHeader />
+        <MobileHeader reminderCount={reminder.alerts.count} onOpenReminders={reminder.open} />
         <main
           className={cn(
             'mx-auto w-full px-4 pt-6 sm:px-6 lg:px-10 lg:pt-10 lg:pb-16',
@@ -39,6 +47,7 @@ export default function AppLayout() {
           </motion.div>
         </main>
       </div>
+      <DueReminderDialog open={reminder.isOpen} alerts={reminder.alerts} onClose={reminder.close} />
       {!isForm && (
         <>
           <BottomNav />

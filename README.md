@@ -28,6 +28,7 @@ Open http://localhost:5173 and sign in with the existing Firebase account. There
 - **Month** = the invoice date's month (e.g. SEP).
 - **GST others / Own GST** (same layout, separate lists, date required): tax ÷ GST rate = taxable base; share value = base × share %; balance amount = base × balance %.
 - **Due date** defaults to invoice date + 45 days and can be edited.
+- **Payment reminders**: once a day, a popup lists unpaid orders that are overdue, due today or due in the next 5 days (`DUE_ALERT_DAYS`), each with **Mark paid** (with Undo). The bell in the sidebar / phone header shows the count and reopens it.
 - **Status**: *Pending* before the due date, *Due today*, *Overdue* after it, or *Completed* once marked as paid. Tap any status badge (orders list, table or dashboard) to switch between *Awaiting payment* and *Completed* without opening the order.
 - **Suggestions**: PO number, invoice number and expense title suggest values you've entered before. A new order's invoice number is pre-filled with the next number in your latest series (INV-0142 → INV-0143). Picking a past expense title also fills its category and payment mode if no category is chosen yet.
 - **Theme**: Light (default), Dark or System, saved per device.
