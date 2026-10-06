@@ -1,15 +1,20 @@
 import { ArrowRight, CalendarDays } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { cn } from '../../lib/cn';
-import { formatDate, formatINR } from '../../lib/format';
+import { formatDate, formatINR, formatPayment } from '../../lib/format';
 import StatusMenu from './StatusMenu';
 
-function Metric({ label, value, accent = false }) {
+function Metric({ label, value, accent = false, format = formatINR }) {
   return (
     <div className="min-w-0">
       <dt className="text-xs text-faint">{label}</dt>
-      <dd className={cn('mt-0.5 text-sm font-semibold tabular-nums', accent ? 'text-accent-ink' : 'text-fg')}>
-        {formatINR(value)}
+      <dd
+        className={cn(
+          'mt-0.5 text-sm font-semibold tabular-nums',
+          accent && value < 0 ? 'text-rose-600 dark:text-rose-400' : accent ? 'text-accent-ink' : 'text-fg',
+        )}
+      >
+        {format(value)}
       </dd>
     </div>
   );
@@ -32,7 +37,10 @@ export default function PurchaseOrderCard({ order }) {
               PO {order.poNumber}
             </Link>
           </p>
-          <p className="mt-0.5 truncate text-[13px] text-muted">Invoice {order.invoiceNumber}</p>
+          <p className="mt-0.5 truncate text-[13px] text-muted">
+            Invoice {order.invoiceNumber}
+            {order.month && <span className="text-faint"> · {order.month}</span>}
+          </p>
         </div>
         <StatusMenu order={order} />
       </div>
@@ -46,10 +54,11 @@ export default function PurchaseOrderCard({ order }) {
         </span>
       </div>
 
-      <dl className="mt-4 grid grid-cols-3 gap-3 border-t border-line pt-3">
-        <Metric label="Amount" value={order.poAmount} />
-        <Metric label="GST" value={order.gst} />
-        <Metric label="Profit" value={order.profit} accent />
+      <dl className="mt-4 grid grid-cols-2 gap-3 border-t border-line pt-3 sm:grid-cols-4">
+        <Metric label="PO amount" value={order.poAmount} />
+        <Metric label="Payment req." value={order.paymentRequired} format={formatPayment} />
+        <Metric label="GST (18%)" value={order.gst} />
+        <Metric label="Net profit" value={order.profit} accent />
       </dl>
     </article>
   );

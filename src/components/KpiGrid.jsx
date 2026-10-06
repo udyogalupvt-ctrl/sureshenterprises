@@ -54,9 +54,9 @@ export default function KpiGrid({ totals, orderCount, expenseCount, loading }) {
 
   const cards = [
     { label: 'Total PO amount', value: totals.poAmount, icon: FileText, caption: plural(orderCount, 'order') },
-    { label: 'Total profit', value: totals.profit, icon: TrendingUp, caption: margin },
+    { label: 'Order profit', value: totals.profit, icon: TrendingUp, caption: `After GST · ${margin}` },
     { label: 'Total expenses', value: totals.expenses, icon: Receipt, caption: plural(expenseCount, 'expense') },
-    { label: 'Net profit', value: totals.net, icon: Wallet, caption: 'Profit − expenses', highlight: true },
+    { label: 'Net profit', value: totals.net, icon: Wallet, caption: 'Order profit − expenses', highlight: true },
   ];
 
   return (

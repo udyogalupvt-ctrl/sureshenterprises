@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { calcGST, calcProfit } from '../../lib/calculations';
 import { cn } from '../../lib/cn';
 import { GST_RATE, PAYMENT_TERM_DAYS } from '../../lib/constants';
-import { addDays, formatDate, formatINR, toISODate } from '../../lib/format';
+import { addDays, formatDate, formatINR, monthCode, toISODate } from '../../lib/format';
 import { nextInvoiceNumber, previousValues } from '../../lib/suggestions';
 import { createPurchaseOrder, updatePurchaseOrder } from '../../services/purchaseOrders';
 import Autocomplete from '../ui/Autocomplete';
@@ -60,9 +60,9 @@ export default function PurchaseOrderForm({ order, previousOrders, onSaved, onDe
     formState: { errors, isSubmitting },
   } = useForm({ defaultValues: defaultValues(order, suggestedInvoiceNumber) });
 
-  const [poNumber, invoiceNumber, poAmount, paymentRequired] = useWatch({
+  const [poNumber, invoiceNumber, invoiceDate, poAmount, paymentRequired] = useWatch({
     control,
-    name: ['poNumber', 'invoiceNumber', 'poAmount', 'paymentRequired'],
+    name: ['poNumber', 'invoiceNumber', 'invoiceDate', 'poAmount', 'paymentRequired'],
   });
   const profit = calcProfit(poAmount, paymentRequired);
 
@@ -175,12 +175,18 @@ export default function PurchaseOrderForm({ order, previousOrders, onSaved, onDe
                 })}
               />
             </Field>
-            <Field label="Payment required" htmlFor="paymentRequired" error={errors.paymentRequired?.message}>
+            <Field
+              label="Payment required"
+              htmlFor="paymentRequired"
+              hint="Leave empty if it isn’t known yet. It shows as P and counts as ₹0."
+              error={errors.paymentRequired?.message}
+            >
               <CurrencyInput
                 id="paymentRequired"
+                placeholder="Not known yet (P)"
                 aria-invalid={Boolean(errors.paymentRequired)}
                 {...register('paymentRequired', {
-                  validate: (value) => (value !== '' && Number(value) >= 0) || 'Enter the payment required',
+                  validate: (value) => value === '' || Number(value) >= 0 || 'Enter ₹0 or more, or leave it empty',
                 })}
               />
             </Field>
@@ -200,7 +206,7 @@ export default function PurchaseOrderForm({ order, previousOrders, onSaved, onDe
 
       <aside className="space-y-4 lg:sticky lg:top-10">
         <Card className="p-5">
-          <p className="text-[13px] font-medium text-muted">Profit</p>
+          <p className="text-[13px] font-medium text-muted">Net profit</p>
           <p
             className={cn(
               'mt-1 text-3xl font-semibold tracking-tight',
@@ -210,10 +216,12 @@ export default function PurchaseOrderForm({ order, previousOrders, onSaved, onDe
             {formatINR(profit)}
           </p>
           <dl className="mt-4 space-y-2.5 border-t border-line pt-4 text-sm">
+            <SummaryRow label="Month" value={monthCode(invoiceDate) || '—'} />
             <SummaryRow label="PO amount" value={formatINR(poAmount)} />
-            <SummaryRow label="Payment required" value={`− ${formatINR(paymentRequired)}`} />
-            <SummaryRow label={`GST (${GST_RATE * 100}%)`} value={formatINR(calcGST(poAmount))} />
+            <SummaryRow label={`Less GST (${GST_RATE * 100}%)`} value={`− ${formatINR(calcGST(poAmount))}`} />
+            <SummaryRow label="Less payment required" value={paymentRequired === '' ? 'P (₹0)' : `− ${formatINR(paymentRequired)}`} />
           </dl>
+          <p className="mt-3 text-xs text-faint">Net profit = PO amount − GST − payment required</p>
         </Card>
 
         <FormActions>

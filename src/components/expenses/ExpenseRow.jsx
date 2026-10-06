@@ -4,7 +4,7 @@ import { formatDate, formatINR } from '../../lib/format';
 import CategoryIcon from './CategoryIcon';
 
 export default function ExpenseRow({ expense }) {
-  const details = [expense.title && expense.category, expense.paymentMode, formatDate(expense.date)];
+  const details = [expense.title && expense.category, expense.bank ? `${expense.paymentMode} (${expense.bank})` : expense.paymentMode, formatDate(expense.date)];
 
   return (
     <Link

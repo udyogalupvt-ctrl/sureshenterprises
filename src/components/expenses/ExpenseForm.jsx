@@ -5,7 +5,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { uploadImage } from '../../lib/cloudinary';
 import { cn } from '../../lib/cn';
-import { PAYMENT_MODES } from '../../lib/constants';
+import { BANKED_MODES, PAYMENT_MODES } from '../../lib/constants';
 import { toISODate } from '../../lib/format';
 import { previousValues } from '../../lib/suggestions';
 import { saveCategory } from '../../services/categories';
@@ -48,16 +48,22 @@ export default function ExpenseForm({ expense, categories, previousExpenses, onS
       newCategory: '',
       date: expense?.date ?? toISODate(),
       paymentMode: expense?.paymentMode ?? PAYMENT_MODES[0],
+      bank: expense?.bank ?? '',
       note: expense?.note ?? '',
     },
   });
 
-  const [title, category] = useWatch({ control, name: ['title', 'category'] });
+  const [title, category, paymentMode, bank] = useWatch({
+    control,
+    name: ['title', 'category', 'paymentMode', 'bank'],
+  });
+  const showBank = BANKED_MODES.includes(paymentMode);
 
   const titleOptions = useMemo(
     () => previousValues(previousExpenses, 'title', (item) => item.category),
     [previousExpenses],
   );
+  const bankOptions = useMemo(() => previousValues(previousExpenses, 'bank'), [previousExpenses]);
 
   /** Picking a past title also copies its category and payment mode, unless a category is already chosen. */
   const pickTitle = ({ value, record }) => {
@@ -65,6 +71,7 @@ export default function ExpenseForm({ expense, categories, previousExpenses, onS
     if (getValues('category') || !categories.includes(record.category)) return;
     setValue('category', record.category, { shouldDirty: true, shouldValidate: isSubmitted });
     if (PAYMENT_MODES.includes(record.paymentMode)) setValue('paymentMode', record.paymentMode, { shouldDirty: true });
+    if (record.bank) setValue('bank', record.bank, { shouldDirty: true });
   };
 
   const selectProof = (file) => {
@@ -108,7 +115,12 @@ export default function ExpenseForm({ expense, categories, previousExpenses, onS
         step = 'save';
       }
 
-      const record = { ...values, category: resolvedCategory, proofUrl };
+      const record = {
+        ...values,
+        bank: BANKED_MODES.includes(values.paymentMode) ? values.bank : '',
+        category: resolvedCategory,
+        proofUrl,
+      };
       if (isNew) await createExpense(record);
       else await updateExpense(expense.id, record);
 
@@ -237,6 +249,19 @@ export default function ExpenseForm({ expense, categories, previousExpenses, onS
             </Select>
           </Field>
         </div>
+
+        {showBank && (
+          <Field label="Bank" htmlFor="bank" optional hint="Which account paid, e.g. BOB.">
+            <Autocomplete
+              id="bank"
+              placeholder="e.g. BOB"
+              options={bankOptions}
+              currentValue={bank}
+              onPick={({ value }) => setValue('bank', value, { shouldDirty: true })}
+              {...register('bank')}
+            />
+          </Field>
+        )}
 
         <Field label="Note" htmlFor="note" optional>
           <Textarea id="note" rows={3} placeholder="Anything worth remembering" {...register('note')} />

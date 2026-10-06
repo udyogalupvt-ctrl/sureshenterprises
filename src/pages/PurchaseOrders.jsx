@@ -25,9 +25,16 @@ export default function PurchaseOrders() {
   const [search, setSearch] = useSearchParam('q');
   const [filter, setFilter] = useSearchParam('status', 'all');
 
+  // Newest invoice first; same-day invoices by invoice number, so the list reads like the sheet.
   const orders = useMemo(() => {
     const today = toISODate();
-    return purchaseOrders.map((order) => ({ ...order, status: getPOStatus(order, today) }));
+    return purchaseOrders
+      .map((order) => ({ ...order, status: getPOStatus(order, today) }))
+      .sort(
+        (a, b) =>
+          (b.invoiceDate ?? '').localeCompare(a.invoiceDate ?? '') ||
+          String(b.invoiceNumber ?? '').localeCompare(String(a.invoiceNumber ?? ''), undefined, { numeric: true }),
+      );
   }, [purchaseOrders]);
 
   const visible = useMemo(() => {
@@ -49,7 +56,10 @@ export default function PurchaseOrders() {
   ];
 
   const isFiltered = Boolean(search) || filter !== 'all';
-  const totalAmount = visible.reduce((sum, order) => sum + (Number(order.poAmount) || 0), 0);
+  const sum = (key) => visible.reduce((total, order) => total + (Number(order[key]) || 0), 0);
+  const totalAmount = sum('poAmount');
+  const totalGST = sum('gst');
+  const totalProfit = sum('profit');
 
   return (
     <>
@@ -82,7 +92,14 @@ export default function PurchaseOrders() {
       {!loading && orders.length > 0 && (
         <div className="mt-4 mb-3 flex items-center justify-between gap-4 text-[13px] text-muted">
           <p>
-            {plural(visible.length, 'order')} · <span className="font-medium text-fg">{formatINR(totalAmount)}</span>
+            <span className="whitespace-nowrap">
+              {plural(visible.length, 'order')} · <span className="font-medium text-fg">{formatINR(totalAmount)}</span>
+            </span>{' '}
+            · <span className="whitespace-nowrap">GST {formatINR(totalGST)}</span>{' '}
+            ·{' '}
+            <span className="whitespace-nowrap">
+              Net profit <span className="font-medium text-accent-ink">{formatINR(totalProfit)}</span>
+            </span>
           </p>
           {isFiltered && (
             <button

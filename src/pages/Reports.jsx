@@ -4,6 +4,7 @@ import KpiGrid from '../components/KpiGrid';
 import BreakdownTable from '../components/reports/BreakdownTable';
 import CategoryBreakdown from '../components/reports/CategoryBreakdown';
 import ChartCard from '../components/reports/ChartCard';
+import ExportMenu from '../components/reports/ExportMenu';
 import NetTrendChart from '../components/reports/NetTrendChart';
 import ProfitChart from '../components/reports/ProfitChart';
 import { Card, CardHeader } from '../components/ui/Card';
@@ -13,11 +14,12 @@ import PageHeader from '../components/ui/PageHeader';
 import SegmentedControl from '../components/ui/SegmentedControl';
 import { Skeleton } from '../components/ui/Skeleton';
 import { useData } from '../context/DataContext';
+import { selectExportData } from '../lib/excelExport';
 import { formatINR, plural } from '../lib/format';
 import { buildReport, currentMonthRange, formatRange, PERIODS } from '../lib/reports';
 
 export default function Reports() {
-  const { purchaseOrders, expenses, loading } = useData();
+  const { purchaseOrders, expenses, gstOthers, ownGst, loading } = useData();
   const [period, setPeriod] = useState('this-month');
   const [custom, setCustom] = useState(currentMonthRange);
 
@@ -25,12 +27,29 @@ export default function Reports() {
     () => buildReport({ purchaseOrders, expenses, period, custom }),
     [purchaseOrders, expenses, period, custom],
   );
+  const allTime = period === 'all';
+  const exportData = useMemo(
+    () => selectExportData({ purchaseOrders, expenses, gstOthers, ownGst, range: report.range, allTime }),
+    [purchaseOrders, expenses, gstOthers, ownGst, report.range, allTime],
+  );
   const hasActivity = report.orderCount + report.expenseCount > 0;
   const unit = report.granularity;
 
   return (
     <>
-      <PageHeader eyebrow={formatRange(report.range)} title="Reports" />
+      <PageHeader
+        eyebrow={formatRange(report.range)}
+        title="Reports"
+        actions={
+          <ExportMenu
+            data={exportData}
+            report={report}
+            allTime={allTime}
+            periodLabel={allTime ? 'All time' : formatRange(report.range)}
+            disabled={loading}
+          />
+        }
+      />
 
       <div className="mb-6 space-y-4">
         <SegmentedControl

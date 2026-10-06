@@ -9,7 +9,7 @@ export default function BottomNav() {
       aria-label="Main"
       className="fixed inset-x-0 bottom-0 z-30 border-t border-line/70 bg-canvas/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
     >
-      <div className="mx-auto grid h-16 max-w-md grid-cols-4">
+      <div className="mx-auto grid h-16 max-w-lg grid-cols-6">
         {NAV_ITEMS.map(({ to, shortLabel, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -17,7 +17,7 @@ export default function BottomNav() {
             end={end}
             className={({ isActive }) =>
               cn(
-                'flex flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors',
+                'flex min-w-0 flex-col items-center justify-center gap-1 text-[10.5px] leading-none font-medium whitespace-nowrap transition-colors',
                 isActive ? 'text-fg' : 'text-faint',
               )
             }

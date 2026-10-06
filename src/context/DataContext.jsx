@@ -3,9 +3,14 @@ import toast from 'react-hot-toast';
 import { auth } from '../lib/firebase';
 import { mergeCategories, subscribeCategories } from '../services/categories';
 import { subscribeExpenses } from '../services/expenses';
+import { subscribeGstLedger } from '../services/gstLedger';
 import { subscribePurchaseOrders } from '../services/purchaseOrders';
 
 const DataContext = createContext(null);
+
+// Stable subscribe functions, so the live queries don't restart on every render.
+const subscribeGstOthers = subscribeGstLedger('others');
+const subscribeOwnGst = subscribeGstLedger('own');
 
 function useLiveQuery(subscribe) {
   const [state, setState] = useState({ items: [], loading: true });
@@ -34,15 +39,19 @@ export function DataProvider({ children }) {
   const purchaseOrders = useLiveQuery(subscribePurchaseOrders);
   const expenses = useLiveQuery(subscribeExpenses);
   const categories = useLiveQuery(subscribeCategories);
+  const gstOthers = useLiveQuery(subscribeGstOthers);
+  const ownGst = useLiveQuery(subscribeOwnGst);
 
   const value = useMemo(
     () => ({
       purchaseOrders: purchaseOrders.items,
       expenses: expenses.items,
+      gstOthers: gstOthers.items,
+      ownGst: ownGst.items,
       categories: mergeCategories(categories.items),
-      loading: purchaseOrders.loading || expenses.loading,
+      loading: purchaseOrders.loading || expenses.loading || gstOthers.loading || ownGst.loading,
     }),
-    [purchaseOrders, expenses, categories],
+    [purchaseOrders, expenses, categories, gstOthers, ownGst],
   );
 
   return <DataContext value={value}>{children}</DataContext>;

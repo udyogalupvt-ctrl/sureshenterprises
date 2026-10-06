@@ -1,59 +1,87 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/cn';
-import { formatDate, formatINR } from '../../lib/format';
-import { Card } from '../ui/Card';
+import { GST_RATE } from '../../lib/constants';
+import { formatDate, formatINR, formatPayment } from '../../lib/format';
+import { SheetCell, SheetHead, SheetRow, SheetTable, SheetTotalRow } from '../ui/SheetTable';
 import StatusMenu from './StatusMenu';
 
-/** Wide-screen table. Expects `order.status` to be precomputed. */
+const COLUMNS = [
+  { key: 'month', header: 'Month' },
+  { key: 'po', header: 'PO no' },
+  { key: 'inv', header: 'Inv no' },
+  { key: 'invDate', header: 'Inv date' },
+  { key: 'dueDate', header: 'Due date' },
+  { key: 'amount', header: 'PO amount', numeric: true },
+  { key: 'payment', header: 'Payment req', numeric: true },
+  { key: 'gst', header: `GST (${GST_RATE * 100}%)`, numeric: true },
+  { key: 'profit', header: 'Net profit', numeric: true },
+  { key: 'status', header: 'Status' },
+];
+
+const total = (orders, key) => orders.reduce((sum, order) => sum + (Number(order[key]) || 0), 0);
+const profitColor = (value) => (value < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-accent-ink');
+
+/** Wide-screen table laid out like the purchase-order sheet. Expects `order.status` to be precomputed. */
 export default function PurchaseOrderTable({ orders }) {
   const navigate = useNavigate();
+  const profit = total(orders, 'profit');
 
   return (
-    <Card className="overflow-hidden">
-      <table className="w-full text-sm whitespace-nowrap">
-        <thead>
-          <tr className="border-b border-line bg-sunken/50 text-left text-xs text-muted">
-            <th scope="col" className="py-3 pr-3 pl-5 font-medium">PO / Invoice</th>
-            <th scope="col" className="px-3 font-medium">Invoice date</th>
-            <th scope="col" className="px-3 font-medium">Due date</th>
-            <th scope="col" className="px-3 text-right font-medium">Amount</th>
-            <th scope="col" className="px-3 text-right font-medium">GST</th>
-            <th scope="col" className="px-3 text-right font-medium">Profit</th>
-            <th scope="col" className="pr-5 pl-3 font-medium">Status</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-line">
-          {orders.map((order) => (
-            <tr
-              key={order.id}
-              onClick={() => navigate(`/purchase-orders/${order.id}`)}
-              className="cursor-pointer transition-colors hover:bg-sunken/60"
-            >
-              <td className="py-3.5 pr-3 pl-5">
-                <Link to={`/purchase-orders/${order.id}`} className="font-medium text-fg">
-                  PO {order.poNumber}
-                </Link>
-                <p className="mt-0.5 text-xs text-muted">{order.invoiceNumber}</p>
-              </td>
-              <td className="px-3 text-muted">{formatDate(order.invoiceDate)}</td>
-              <td
-                className={cn(
-                  'px-3',
-                  order.status === 'overdue' ? 'font-medium text-rose-600 dark:text-rose-400' : 'text-muted',
-                )}
+    <SheetTable minWidth={1040}>
+      <SheetHead columns={COLUMNS} />
+      <tbody>
+        {orders.map((order) => (
+          <SheetRow key={order.id} onOpen={() => navigate(`/purchase-orders/${order.id}`)}>
+            <SheetCell className="font-medium text-muted">{order.month}</SheetCell>
+            <SheetCell>
+              <Link
+                to={`/purchase-orders/${order.id}`}
+                onClick={(event) => event.stopPropagation()}
+                className="font-medium text-fg hover:underline"
               >
-                {formatDate(order.dueDate)}
-              </td>
-              <td className="px-3 text-right text-fg tabular-nums">{formatINR(order.poAmount)}</td>
-              <td className="px-3 text-right text-muted tabular-nums">{formatINR(order.gst)}</td>
-              <td className="px-3 text-right font-medium text-accent-ink tabular-nums">{formatINR(order.profit)}</td>
-              <td className="pr-5 pl-3">
-                <StatusMenu order={order} />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </Card>
+                {order.poNumber}
+              </Link>
+            </SheetCell>
+            <SheetCell className="text-muted">{order.invoiceNumber}</SheetCell>
+            <SheetCell className="text-muted">{formatDate(order.invoiceDate)}</SheetCell>
+            <SheetCell
+              className={order.status === 'overdue' ? 'font-medium text-rose-600 dark:text-rose-400' : 'text-muted'}
+            >
+              {formatDate(order.dueDate)}
+            </SheetCell>
+            <SheetCell numeric>{formatINR(order.poAmount)}</SheetCell>
+            <SheetCell
+              numeric
+              className={order.paymentRequired == null ? 'font-semibold text-amber-700 dark:text-amber-400' : undefined}
+            >
+              {formatPayment(order.paymentRequired)}
+            </SheetCell>
+            <SheetCell numeric className="text-muted">
+              {formatINR(order.gst)}
+            </SheetCell>
+            <SheetCell numeric className={cn('font-semibold', profitColor(order.profit))}>
+              {formatINR(order.profit)}
+            </SheetCell>
+            <SheetCell className="py-1.5">
+              <StatusMenu order={order} />
+            </SheetCell>
+          </SheetRow>
+        ))}
+      </tbody>
+      <SheetTotalRow>
+        <SheetCell>Total</SheetCell>
+        <SheetCell />
+        <SheetCell />
+        <SheetCell />
+        <SheetCell />
+        <SheetCell numeric>{formatINR(total(orders, 'poAmount'))}</SheetCell>
+        <SheetCell numeric>{formatINR(total(orders, 'paymentRequired'))}</SheetCell>
+        <SheetCell numeric>{formatINR(total(orders, 'gst'))}</SheetCell>
+        <SheetCell numeric className={profitColor(profit)}>
+          {formatINR(profit)}
+        </SheetCell>
+        <SheetCell />
+      </SheetTotalRow>
+    </SheetTable>
   );
 }

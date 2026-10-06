@@ -1,23 +1,33 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { FileText, Plus, Receipt } from 'lucide-react';
+import { FileText, Plus, Receipt, ReceiptText } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 const ORDER = { to: '/purchase-orders/new', label: 'Purchase order', icon: FileText };
 const EXPENSE = { to: '/expenses/new', label: 'Expense', icon: Receipt };
+const GST_ENTRY = { to: '/gst-others?new=1', label: 'GST entry', icon: ReceiptText };
+const OWN_GST_ENTRY = { to: '/own-gst?new=1', label: 'Own GST entry', icon: ReceiptText };
 
 const FAB_CLASSES =
   'flex h-14 items-center gap-2 rounded-full bg-accent pr-6 pl-5 font-semibold text-accent-fg shadow-float transition-transform active:scale-95';
 
 /**
- * Mobile "+ Add" button. On the orders and expenses pages it adds that record type;
+ * Mobile "+ Add" button. On the orders, expenses and GST pages it adds that record type;
  * elsewhere it opens a small menu to choose one.
  */
 export default function AddButton() {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
 
-  const target = pathname.startsWith('/purchase-orders') ? ORDER : pathname.startsWith('/expenses') ? EXPENSE : null;
+  const target = pathname.startsWith('/purchase-orders')
+    ? ORDER
+    : pathname.startsWith('/expenses')
+      ? EXPENSE
+      : pathname.startsWith('/gst-others')
+        ? GST_ENTRY
+        : pathname.startsWith('/own-gst')
+          ? OWN_GST_ENTRY
+          : null;
 
   return (
     <div className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 lg:hidden">

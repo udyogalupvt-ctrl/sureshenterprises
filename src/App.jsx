@@ -10,6 +10,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import Dashboard from './pages/Dashboard';
 import ExpenseEditor from './pages/ExpenseEditor';
 import Expenses from './pages/Expenses';
+import GstLedger from './pages/GstLedger';
 import Login from './pages/Login';
 import PurchaseOrderEditor from './pages/PurchaseOrderEditor';
 import PurchaseOrders from './pages/PurchaseOrders';
@@ -59,6 +60,8 @@ export default function App() {
                 <Route path="purchase-orders/:id" element={<PurchaseOrderEditor />} />
                 <Route path="expenses" element={<Expenses />} />
                 <Route path="expenses/:id" element={<ExpenseEditor />} />
+                <Route path="gst-others" element={<GstLedger key="others" ledger="others" />} />
+                <Route path="own-gst" element={<GstLedger key="own" ledger="own" />} />
                 <Route path="reports" element={<Reports />} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />

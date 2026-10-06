@@ -1,10 +1,11 @@
-import { Building2, Fuel, Package, Tag, Truck, Users, Utensils, Wrench } from 'lucide-react';
+import { Building2, Fuel, Landmark, Package, Tag, Truck, Users, Utensils, Wrench } from 'lucide-react';
 import { cn } from '../../lib/cn';
 
 const ICONS = {
   Transport: Truck,
   Fuel,
   Salary: Users,
+  Interest: Landmark,
   Office: Building2,
   Food: Utensils,
   Material: Package,
